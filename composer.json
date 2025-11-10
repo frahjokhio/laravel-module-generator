@@ -1,0 +1,23 @@
+{
+  "name": "frahjokhio/module-generator",
+  "description": "A Laravel package to generate modular structure with CRUD boilerplate.",
+  "type": "library",
+  "license": "MIT",
+  "version": "1.0.0",
+  "autoload": {
+    "psr-4": {
+      "Frahjokhio\\ModuleGenerator\\": "src/"
+    }
+  },
+  "require": {
+    "php": "^8.2",
+    "illuminate/support": "^12.0"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Frahjokhio\\ModuleGenerator\\Providers\\ModuleGeneratorServiceProvider"
+      ]
+    }
+  }
+}

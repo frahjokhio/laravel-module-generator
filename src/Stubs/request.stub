@@ -1,0 +1,15 @@
+<?php
+
+namespace App\Modules\{{ name }}\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class {{ name }}Request extends FormRequest
+{
+    public function rules(): array
+    {
+        return [
+            // validation rules
+        ];
+    }
+}

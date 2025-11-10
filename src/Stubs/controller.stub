@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Modules\{{ name }}\Controllers;
+
+use App\Http\Controllers\Controller;
+use App\Modules\{{ name }}\Services\{{ name }}Service;
+use App\Modules\{{ name }}\Requests\{{ name }}Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class {{ name }}Controller extends Controller
+{
+    protected {{ name }}Service $service;
+
+    public function __construct({{ name }}Service $service)
+    {
+        $this->service = $service;
+    }
+
+    public function index(): JsonResponse
+    {
+        return response()->json($this->service->all());
+    }
+
+    public function store({{ name }}Request $request): JsonResponse
+    {
+        return response()->json($this->service->create($request->validated()), 201);
+    }
+
+    public function show($id): JsonResponse
+    {
+        return response()->json($this->service->find($id));
+    }
+
+    public function update({{ name }}Request $request, $id): JsonResponse
+    {
+        return response()->json($this->service->update($id, $request->validated()));
+    }
+
+    public function destroy($id): JsonResponse
+    {
+        $this->service->delete($id);
+        return response()->json(null, 204);
+    }
+}

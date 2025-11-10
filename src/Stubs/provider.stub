@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Modules\{{ name }};
+
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Route;
+
+class {{ name }}ServiceProvider extends ServiceProvider
+{
+    public function boot(): void
+    {
+        $this->loadRoutes();
+    }
+
+    protected function loadRoutes(): void
+    {
+        $routeFile = base_path('app/Modules/{{ name }}/Routes/api.php');
+
+        if (file_exists($routeFile)) {
+            Route::prefix('api')
+                ->middleware('api')
+                ->group($routeFile);
+        }
+    }
+}
