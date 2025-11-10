@@ -117,7 +117,7 @@ class ModuleGeneratorService
 
     protected function createBaseFiles(string $basePath, string $name, array $columns): void
     {
-        $stubsPath = base_path('packages/laravel-module-generator/src/Stubs');
+        $stubsPath = __DIR__ . '/../Stubs';
 
         $this->writeFile("{$basePath}/routes/api.php", $this->renderStub("{$stubsPath}/routes.stub", ['name' => $name]));
         $this->writeFile("{$basePath}/Controllers/{$name}Controller.php", $this->renderStub("{$stubsPath}/controller.stub", ['name' => $name]));
