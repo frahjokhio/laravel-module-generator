@@ -123,7 +123,17 @@ class ModuleGeneratorService
         $this->writeFile("{$basePath}/Controllers/{$name}Controller.php", $this->renderStub("{$stubsPath}/controller.stub", ['name' => $name]));
         $this->writeFile("{$basePath}/Services/{$name}Service.php", $this->renderStub("{$stubsPath}/service.stub", ['name' => $name]));
         $this->writeFile("{$basePath}/Repositories/{$name}Repository.php", $this->renderStub("{$stubsPath}/repository.stub", ['name' => $name]));
-        $this->writeFile("{$basePath}/Requests/{$name}Request.php", $this->renderStub("{$stubsPath}/request.stub", ['name' => $name]));
+
+        // Generate rules string
+        $rulesString = $this->generateValidationRules($name, $columns);
+
+        $this->writeFile("{$basePath}/Requests/{$name}Request.php", 
+            $this->renderStub("{$stubsPath}/request.stub", [
+                'name' => $name,
+                'rules' => $rulesString
+            ])
+        );
+
         $this->writeFile("{$basePath}/Models/{$name}.php", $this->renderStub("{$stubsPath}/model.stub", [
             'name' => $name,
             'fillable' => !empty($columns)
@@ -167,4 +177,77 @@ class ModuleGeneratorService
         File::put($providerPath, $content);
         $command->info("✅ {$name}ServiceProvider added to bootstrap/providers.php");
     }
+
+    protected function generateValidationRules(string $name, array $columns): string
+    {
+        $validationMap = [
+            'string' => 'string',
+            'text' => 'string',
+            'email' => 'email',
+            'password' => 'string|min:8',
+            'integer' => 'integer',
+            'bigint' => 'integer',
+            'boolean' => 'boolean',
+            'float' => 'numeric',
+            'decimal' => 'numeric',
+            'double' => 'numeric',
+            'date' => 'date',
+            'datetime' => 'date',
+            'timestamp' => 'date',
+            'json' => 'array',
+            'foreignId' => 'integer',
+        ];
+
+        $rules = [];
+
+        foreach ($columns as $col => $meta) {
+            $validation = [];
+
+            // nullable or required
+            if (!empty($meta['modifiers']) && in_array('nullable', $meta['modifiers'])) {
+                $validation[] = "'nullable'";
+            } elseif (!empty($meta['default'])) {
+                $validation[] = "'nullable'";
+            } else {
+                $validation[] = "'required'";
+            }
+
+            // type
+            if (!empty($meta['type']) && isset($validationMap[$meta['type']])) {
+                $typeRule = $validationMap[$meta['type']];
+                $validation[] = "'{$typeRule}'";
+
+                if (in_array($meta['type'], ['string', 'text', 'email', 'password'])) {
+                    $validation[] = "'max:255'";
+                }
+            }
+
+            // unique
+            if (!empty($meta['modifiers']) && in_array('unique', $meta['modifiers'])) {
+                $tableName = Str::plural(Str::snake(Str::lower($name)));
+                $validation[] = "Rule::unique('{$tableName}', '{$col}')";
+            }
+
+            // enum
+            if (!empty($meta['type']) && $meta['type'] == 'enum') {
+                if(!empty($meta['values'])){
+                    $values = implode(',', $meta['values']);
+                    $validation[] = "'in:{$values}'";
+                }
+            }
+
+            // foreign id
+            if (!empty($meta['type']) && $meta['type'] === 'foreignId') {
+                if (!empty($meta['modifiers']) && in_array('constrained', $meta['modifiers'])) {
+                    $relatedTable = Str::plural(Str::snake(str_replace('_id', '', $col)));
+                    $validation[] = "'exists:{$relatedTable},id'";
+                }
+            }
+
+            $rules[] = "            '{$col}' => [" . implode(', ', $validation) . "],";
+        }
+
+        return implode("\n", $rules);
+    }
+
 }
